@@ -37,6 +37,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 import static java.util.Arrays.fill;
 
 public class MainActivity extends AppCompatActivity {
@@ -49,26 +53,12 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... urls) {
 
             Log.i("URL", urls[0]);
+            OkHttpClient client = new OkHttpClient();
 
-            String result = "";
-            StringBuilder stringBuilder = null;
-            URL url;
-            HttpURLConnection httpURLConnection = null;
             try {
-                url = new URL(urls[0]);
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                InputStream inputStream = httpURLConnection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                int data = inputStreamReader.read();
-
-                while(data != -1) {
-                    char current = (char) data;
-                    result += current;
-                    data = inputStreamReader.read();
-                }
-
-                return result;
-
+                Request request = new Request.Builder().url(urls[0]).build();
+                Response response = client.newCall(request).execute();
+                return response.body().string();
             } catch (Exception e) {
                 e.printStackTrace();
                 return "Failed";
@@ -86,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
                 JSONArray jsonArray = new JSONArray(s);
                 String message = "";
                 for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject currentBreweryObject = jsonArray.getJSONObject(i);
                     Gson gson = new Gson();
                     breweryList = gson.fromJson(s, new TypeToken<ArrayList<Brewery>>() {}.getType());
                 }
