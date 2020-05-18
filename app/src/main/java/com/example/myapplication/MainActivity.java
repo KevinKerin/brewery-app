@@ -6,15 +6,18 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -41,13 +44,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static java.util.Arrays.fill;
 
 public class MainActivity extends AppCompatActivity {
 
     public class Task extends AsyncTask<String, Void, String>{
 
-        ListView listView = findViewById(R.id.myListView);
+        private ListView listView = findViewById(R.id.myListView);
 
         @Override
         protected String doInBackground(String... urls) {
@@ -70,29 +75,67 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            List<Brewery> breweryList = new ArrayList<Brewery>();
+            List<Brewery> breweryList;
 
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-                String message = "";
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Gson gson = new Gson();
-                    breweryList = gson.fromJson(s, new TypeToken<ArrayList<Brewery>>() {}.getType());
-                }
-                ArrayAdapter<String> arrayAdapter = fillList(breweryList);
-                listView.setAdapter(arrayAdapter);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            Gson gson = new Gson();
+            breweryList = gson.fromJson(s, new TypeToken<ArrayList<Brewery>>() {}.getType());
+            fillList(breweryList, listView);
+
         }
     }
 
-    public ArrayAdapter<String> fillList(List list){
-        ArrayList<String> nameList = new ArrayList<String>();
-        for (Object o : list){
-            nameList.add(o.toString());
+    public void fillList(List<Brewery> breweryList, ListView listView){
+
+        List<LinearLayout> breweryLayoutlist = new ArrayList<>();
+
+        for (Brewery currentBrewery : breweryList){
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.setLayoutParams(new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+
+            TextView titleView = new TextView(this);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
+            titleView.setLayoutParams(layoutParams);
+            titleView.setText(currentBrewery.getName());
+            layout.addView(titleView);
+
+            TextView subtitleView = new TextView(this);
+            LinearLayout.LayoutParams subtitleLayoutParams = new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
+            titleView.setLayoutParams(subtitleLayoutParams);
+            titleView.setText(currentBrewery.getStreet() + " " + currentBrewery.getCity());
+            layout.addView(subtitleView);
+
+            ImageView imageView = new ImageView(this);
+            layout.addView(imageView);
+
+            switch (currentBrewery.getState()){
+                case "Alabama":
+                    imageView.setImageResource(R.drawable.alabama);
+                    break;
+                case "Alaska":
+                    imageView.setImageResource(R.drawable.alaska);
+                    break;
+                case "Arizona":
+                    imageView.setImageResource(R.drawable.arizona);
+                    break;
+                case "Arkansas":
+                    imageView.setImageResource(R.drawable.arkansas);
+                    break;
+                default:
+                    imageView.setImageResource(R.drawable.usa);
+                    break;
+            }
+
+            setContentView(layout);
+            breweryLayoutlist.add(layout);
+
         }
-        return new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, nameList);
+
+
+        ArrayAdapter<LinearLayout> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, breweryLayoutlist);
+
+        listView.setAdapter(arrayAdapter);
+
     }
 
     @Override
